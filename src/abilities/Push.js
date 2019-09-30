@@ -5,8 +5,8 @@ export default class Push extends Ability {
     static key = 'push';
     speed = 400;
     pushDistance = 2;
-    maxDistanceToLive = 500;
-    distanceToLive = 500;
+    maxDistanceToLive = 1000;
+    distanceToLive = 1000;
     bulletSprite = null;
     active = false;
 
@@ -55,7 +55,7 @@ export default class Push extends Ability {
 
     update(delta) {
         super.update(delta);
-        
+
         if (this.active) {
             this.scene.physics.world.collide(this.bulletSprite, this.scene.currentLevel.spriteMap, this.handleBulletCollide);
 
@@ -71,13 +71,13 @@ export default class Push extends Ability {
         if (tile.pushable) {
             let targets;
             let movement = bulletSprite.body.velocity.clone().normalize();
-            
+
             if (tile.isAffectedBy(Link.key)) {
                 targets = this.scene.currentLevel.getTilesAffectedBy(Link.key).map(t => t.sprite);
             } else {
                 targets = [levelSprite];
             }
-            
+
             targets.forEach((sprite) => {
                 sprite.body.velocity.x = bulletSprite.body.velocity.x;
                 sprite.body.velocity.y = bulletSprite.body.velocity.y;

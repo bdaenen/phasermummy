@@ -1,10 +1,4 @@
 import Igor from '../sprites/Igor';
-import Goomba from '../sprites/Goomba';
-import Turtle from '../sprites/Turtle';
-import PowerUp from '../sprites/PowerUp';
-import SMBTileSprite from '../sprites/SMBTileSprite';
-import AnimatedTiles from 'phaser-animated-tiles/dist/AnimatedTiles.min.js';
-import Fire from '../sprites/Fire';
 import levelLoader from '../levels/LevelLoader';
 
 /**
@@ -99,7 +93,7 @@ class GameScene extends Phaser.Scene {
      */
     initLevel = (lvl) => {
         this.currentLevel = lvl;
-        
+
         // Depth sorting
         this.backgroundGroup.setDepth(0);
         this.middleGroup.setDepth(500);
@@ -207,21 +201,21 @@ class GameScene extends Phaser.Scene {
      * @memberof GameScene
      */
     checkLevelTransition() {
-        if (this.igor.y < this.igor.height/2) {
+        if (this.igor.y < this.igor.height / 2) {
             this.physics.world.pause();
             levelLoader(this, this.currentLevel.x, this.currentLevel.y+1).then(this.initLevel);
         }
-        else if (this.igor.x < this.igor.width/2) {
+        else if (this.igor.x < this.igor.width / 2) {
             this.physics.world.pause();
-            levelLoader(this, this.currentLevel.x-1, this.currentLevel.y).then(this.initLevel);
+            levelLoader(this, this.currentLevel.x - 1, this.currentLevel.y).then(this.initLevel);
         }
         else if (this.igor.x > this.sys.game.config.width) {
             this.physics.world.pause();
-            levelLoader(this, this.currentLevel.x+1, this.currentLevel.y).then(this.initLevel);
+            levelLoader(this, this.currentLevel.x + 1, this.currentLevel.y).then(this.initLevel);
         }
         else if (this.igor.y > this.sys.game.config.height) {
             this.physics.world.pause();
-            levelLoader(this, this.currentLevel.x, this.currentLevel.y-1).then(this.initLevel);
+            levelLoader(this, this.currentLevel.x, this.currentLevel.y - 1).then(this.initLevel);
         }
     }
 

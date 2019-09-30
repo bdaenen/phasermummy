@@ -5,7 +5,7 @@ export default class BaseTile {
     sprite = null;
     pushable = false;
     collides = true;
-    affectedBy = {};
+    affectedBy = null;
     constructor(config) {
         if (this.collides) {
             this.sprite = config.scene.physics.add.sprite(
@@ -28,9 +28,11 @@ export default class BaseTile {
         }
         this.sprite.setDataEnabled();
         this.sprite.setData('tile', this);
+        this.affectedBy = {};
     }
     destroy() {
         this.sprite.destroy();
+        this.affectedBy = {};
     }
     applyAbility(key) {
         this.affectedBy[key] = true;

@@ -43,7 +43,7 @@ export default function(scene, levelX, levelY, transition = true, transitionPosi
                         }
                     }
                     console.log(transitionPosition, scene.igor.x, scene.igor.y);
-                    
+
                     resolve(level);
                 });
             });
@@ -51,7 +51,7 @@ export default function(scene, levelX, levelY, transition = true, transitionPosi
         catch(ex) {
             console.log(ex);
         }
-    })
+    });
 };
 
 /**
@@ -82,13 +82,15 @@ function buildLevel(scene, level) {
         scene.foregroundGroup.add(block.sprite);
     });
 
-    //scene.levelGroup.setDepth(-level.spriteMap.length, 1);
+    // scene.levelGroup.setDepth(-level.spriteMap.length, 1);
 }
 
 /**
- * @param {*} level
+ * @param scene
+ * @param level
  */
 function destroyLevel(scene, level) {
+    scene.events.emit('level.destroy');
     level.tileMap.forEach(function(block) {
         block.destroy();
     });

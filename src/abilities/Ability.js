@@ -1,14 +1,14 @@
 export default class Ability {
     static key = '';
     key = this.constructor.key;
-    cooldownTime = 1000;
-    cooldown = 1000;
+    cooldownTime = 500;
+    cooldown = 500;
     sprite = null;
 
     constructor(scene) {
         this.scene = scene;
     }
-    
+
     addToSprite(sprite) {
         this.sprite = sprite;
         let abilities = sprite.getData('abilities');
@@ -36,7 +36,7 @@ export default class Ability {
 
     update(delta) {
         this.cooldown -= delta;
-        
+
         if (this.isReady()) {
             this.trigger();
             this.cooldown = this.cooldownTime;

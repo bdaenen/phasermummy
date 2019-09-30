@@ -1,4 +1,3 @@
-import Ability from './Ability';
 import Push from './Push';
 
 /**
@@ -10,7 +9,7 @@ export default class Link extends Push {
     static key = 'link';
     targets = [];
     minLinks = 2;
-    maxLinks = 2;
+    maxLinks = 3;
     graphics = null;
 
     /**
@@ -23,6 +22,8 @@ export default class Link extends Push {
         this.graphics = scene.add.graphics();
         this.graphics.setDepth(Infinity);
         scene.input.mouse.disableContextMenu();
+        scene.events.on('level.destroy', this.handleLevelDestruction, this);
+        this.keySpace = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     }
 
     /**
@@ -53,13 +54,16 @@ export default class Link extends Push {
     trigger() {
         if (this.targets.length !== this.maxLinks) {
             super.trigger();
+        } else {
+            this.clearLinks();
         }
-        else {
-            this.targets.forEach((tar) => {
-                tar.getData('tile').unapplyAbility(this.key);
-            });
-            this.targets = [];
-        }
+    }
+
+    clearLinks() {
+        this.targets.forEach((tar) => {
+            tar.getData('tile').unapplyAbility(this.key);
+        });
+        this.targets = [];
     }
 
     /**
@@ -72,9 +76,18 @@ export default class Link extends Push {
             this.disable();
 
             // Add the sprite as a target
-            this.targets.push(levelSprite);
+            if (!this.targets.includes(levelSprite)) {
+                this.targets.push(levelSprite);
+            }
             tile.applyAbility(this.key);
         }
+    };
+
+    /**
+     *
+     */
+    handleLevelDestruction() {
+        this.clearLinks();
     }
 
     /**
@@ -83,6 +96,9 @@ export default class Link extends Push {
      */
     update(delta) {
         super.update(delta);
+        if (this.keySpace.isDown) {
+            this.clearLinks();
+        }
         this.updateTargetBorders();
     }
 
