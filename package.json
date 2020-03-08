@@ -39,6 +39,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "phaser": "^3.19.0",
-    "phaser-animated-tiles": "^2.0.2"
+    "phaser-animated-tiles": "^2.0.2",
+    "phaser-matter-collision-plugin": "^0.10.2"
   }
 }

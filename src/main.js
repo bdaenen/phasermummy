@@ -1,6 +1,8 @@
 import 'phaser';
+import PhaserMatterCollisionPlugin from "phaser-matter-collision-plugin";
 import BootScene from './scenes/BootScene';
 import GameScene from './scenes/GameScene';
+import MatterTest from './scenes/MatterScene';
 import TitleScene from './scenes/TitleScene';
 
 const config = {
@@ -16,18 +18,29 @@ const config = {
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
     physics: {
-        default: 'arcade',
-        arcade: {
+        default: 'matter',
+        matter: {
+            debug: true,
             gravity: {
-                y: 1100
-            },
-            debug: false
+                x: 0,
+                y: 5
+            }
         }
     },
+    plugins: {
+        scene: [
+          {
+            plugin: PhaserMatterCollisionPlugin, // The plugin class
+            key: "matterCollision", // Where to store in Scene.Systems, e.g. scene.sys.matterCollision
+            mapping: "matterCollision" // Where to store in the Scene, e.g. scene.matterCollision
+          }
+        ]
+    },
     scene: [
-        BootScene,
-        TitleScene,
-        GameScene
+        MatterTest
+        //BootScene,
+        //TitleScene,
+        //GameScene
     ]
 };
 

@@ -14,6 +14,7 @@ export default class BaseTile {
                 `${config.tileset}_${this.constructor.spriteKey}`
             );
             this.sprite.body.setDrag(2300, 2300);
+            this.sprite.body.setSize(20, 22, true);
             if (this.immovable) {
                 this.sprite.body.setImmovable();
             }
