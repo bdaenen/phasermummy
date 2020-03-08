@@ -20,18 +20,14 @@ const config = {
     physics: {
         default: 'matter',
         matter: {
-            debug: true,
-            gravity: {
-                x: 0,
-                y: 5
-            }
+            debug: true
         }
     },
     plugins: {
         scene: [
           {
             plugin: PhaserMatterCollisionPlugin, // The plugin class
-            key: "matterCollision", // Where to store in Scene.Systems, e.g. scene.sys.matterCollision
+            key: "matterCollision", // Where to store in Scelne.Systems, e.g. scene.sys.matterCollision
             mapping: "matterCollision" // Where to store in the Scene, e.g. scene.matterCollision
           }
         ]
