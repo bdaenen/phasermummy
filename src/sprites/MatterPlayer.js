@@ -5,7 +5,7 @@ export default class MatterPlayer {
         this.scene = scene;
         this.sprite = this.scene.matter.add.sprite(0, 0, 'igor', 0);
         this.isTouching = {left: false, right: false, ground: false};
-        this.canJump = true;
+        this.didJump = false;
 
         const { Body, Bodies } = Phaser.Physics.Matter.Matter;
         const { width, height } = this.sprite;
@@ -34,16 +34,16 @@ export default class MatterPlayer {
                 this.sensors.right,
             ],
             frictionStatic: 0,
-            frictionAir: 0.02,
-            friction: 5,
+            frictionAir: 0,
+            friction: 0.2,
         });
 
         this.sprite
             .setExistingBody(compoundBody)
             .setScale(1)
             .setFixedRotation()
+            .setMass(2.1)
             .setPosition(x, y);
-
         // Track the keys
         const {
             LEFT,
@@ -93,6 +93,7 @@ export default class MatterPlayer {
             if (pair.separation > 0.5) this.sprite.x -= pair.separation - 0.5;
         } else if (bodyA === this.sensors.bottom) {
             this.isTouching.ground = true;
+            this.didJump = false;
         }
     }
 
@@ -120,24 +121,40 @@ export default class MatterPlayer {
         if (isLeftKeyDown) {
             sprite.setFlipX(true);
             // Only move left if we're grounded, or not touching a wall. The grounded check is necessary to make slopes work.
-            if (this.isTouching.ground || !this.isTouching.left) {
-                sprite.setVelocityX(-3);
+            if (!this.isTouching.left) {
+                //sprite.setVelocityX(-3);
+                    console.log(sprite.body.velocity);
+                    sprite.applyForce({x: -0.01, y: 0});
             }
         } else if (isRightKeyDown) {
             sprite.setFlipX(false);
             // Only move left if we're grounded, or not touching a wall. The grounded check is necessary to make slopes work.
-            if (this.isTouching.ground || !this.isTouching.right) {
-                sprite.setVelocityX(3);
+            if (!this.isTouching.right) {
+                //sprite.setVelocityX(3);
+                sprite.applyForce({x: 0.01, y: 0});
+
             }
         }
 
         // TODO: check if thiis is still needed. Might interfere with strongly pushing the player back.
-        if (velocity.x > 3) sprite.setVelocityX(3);
-        else if (velocity.x < -3) sprite.setVelocityX(-3);
+        if (velocity.x > 2) sprite.setVelocityX(2);
+        else if (velocity.x < -2) sprite.setVelocityX(-2);
+
+        if (this.didJump) {
+            if (velocity.x >= 2) {
+                sprite.applyForce({x: -0.005, y: 0});
+            }
+            if (velocity.x <= -2) {
+                sprite.applyForce({x: 0.005, y: 0});
+            }
+        }
 
         if (isJumpKeyDown && this.isTouching.ground) {
             sprite.setVelocityY(-7);
+            this.didJump = true;
         }
+
+        // TODO: experiment with this.jumpInput.isDown() + this.didJump + this.jumpInput.timeOdwn so we can jump higher when holding up longer.
     }
 
     destroy() {

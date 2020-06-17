@@ -2,6 +2,7 @@
 
 export { default as BaseTile } from './BaseTile.js';
 export { default as Key } from './Key.js';
+export { default as MatterTile } from './MatterTile.js';
 export { default as Portal } from './Portal.js';
 export { default as PowerupLink } from './PowerupLink.js';
 export { default as PowerupPush } from './PowerupPush.js';
