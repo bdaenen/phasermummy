@@ -2,7 +2,6 @@ var player;
 var cursors;
 import MatterPlayer from "../sprites/MatterPlayer.js";
 import Slopes from 'phaser-slopes';
-import levelJson from '../levels/level2_0.';
 
 /**
  * @class MatterScene
@@ -27,7 +26,7 @@ class MatterScene extends Phaser.Scene {
     preload() {
         this.load.image("block", "assets/images/base/wall.png");
         this.load.image("igor", "assets/images/igor.png");
-        this.load.tilemapTiledJSON("map", levelJson);
+        this.load.tilemapTiledJSON({key: "map", url: "assets/levels/level2_0.json"});
         this.load.scenePlugin('Slopes', Slopes);
         this.load.image(
             "ForgottenDungeonRecolor",
@@ -35,12 +34,17 @@ class MatterScene extends Phaser.Scene {
         );
     }
 
+    async loadLevel() {
+        return true;
+    }
+
     /**
      * @memberof MatterScene
      */
-    create() {
+    async create() {
         //this.matter.world.setBounds(0, 0, 720, 400);
 
+        await this.loadLevel()
         this.matter.world.setGravity(0, 0.8);
         const map = this.make.tilemap({key: 'map'});
         const tileset = map.addTilesetImage('ForgottenDungeonRecolor');
@@ -65,8 +69,15 @@ class MatterScene extends Phaser.Scene {
 
             // Tiled origin for coordinate system is (0, 1), but we want (0.5, 0.5)
             this.matter.add
-                .image(x + width / 2, y - height / 2, "block")
-                .setBody({shape: "rectangle", density: 0.001});
+                .image(x-width/2, y-height/2, "block")
+                .setBody({
+                    shape: "rectangle",
+                    density: 1,
+                    width: 16,
+                    height: 16
+                })
+                .setFixedRotation()
+                .setStatic(true)
         });
 
         player = new MatterPlayer(this, 260, 180);
@@ -79,6 +90,16 @@ class MatterScene extends Phaser.Scene {
         });
 
         cursors = this.input.keyboard.createCursorKeys();
+
+        this.matter.world.on('collisionstart', (event, bodyA, bodyB) => {
+            console.log(this.matter.world);
+            if (Object.values(this.matter.world.walls).indexOf(bodyA) >= 0) {
+                // TODO: load next level depending on if we hit top/right/bottom/left
+            }
+            if (Object.values(this.matter.world.walls).indexOf(bodyB) >= 0) {
+                // TODO: load next level depending on if we hit top/right/bottom/left
+            }
+        })
     }
 
     onPlayerCollide({gameObjectB}) {

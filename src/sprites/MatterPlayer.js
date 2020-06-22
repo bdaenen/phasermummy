@@ -5,23 +5,25 @@ export default class MatterPlayer {
         this.scene = scene;
         this.sprite = this.scene.matter.add.sprite(0, 0, 'igor', 0);
         this.isTouching = {left: false, right: false, ground: false};
+        // TODO: grace period for allowing jumps
+        this.sinceGroundTouching = 0;
         this.didJump = false;
 
         const { Body, Bodies } = Phaser.Physics.Matter.Matter;
         const { width, height } = this.sprite;
 
-        const mainBody = Bodies.rectangle(0, 0, width * 0.6, height, {
-            chamfer: { radius: 10 },
+        const mainBody = Bodies.rectangle((width/2), height/2, width * 0.6, height, {
+            rectangle: { width: 10, height: 10 },
         });
 
         this.sensors = {
-            bottom: Bodies.rectangle(0, height * 0.5, width * 0.25, 2, {
+            bottom: Bodies.rectangle(width/2, height, 8, 2, {
                 isSensor: true,
             }),
-            left: Bodies.rectangle(-width * 0.35, 0, 3, height * 0.5, {
+            left: Bodies.rectangle(width/4, height/2, 4, height * 0.5, {
                 isSensor: true,
             }),
-            right: Bodies.rectangle(width * 0.35, 0, 3, height * 0.5, {
+            right: Bodies.rectangle(width/4*3, height/2, 4, height * 0.5, {
                 isSensor: true,
             }),
         };
@@ -33,8 +35,8 @@ export default class MatterPlayer {
                 this.sensors.left,
                 this.sensors.right,
             ],
-            frictionStatic: 0,
-            frictionAir: 0,
+            frictionStatic: 1,
+            frictionAir: 0.03,
             friction: 0.2,
         });
 
@@ -84,13 +86,13 @@ export default class MatterPlayer {
         if (bodyA === this.sensors.left) {
             this.isTouching.left = true;
             // This fixes 90% of the "sticky wall" situations
-            !this.isTouching.ground && this.sprite.setVelocityX(0);
-            if (pair.separation > 0.5) this.sprite.x += pair.separation - 0.5;
+            this.sprite.setVelocityX(0);
+            if (pair.separation >= 0.5) this.sprite.x += pair.separation - 0.5;
         } else if (bodyA === this.sensors.right) {
             this.isTouching.right = true;
             // This fixes 90% of the "sticky wall" situations
-            !this.isTouching.ground && this.sprite.setVelocityX(0);
-            if (pair.separation > 0.5) this.sprite.x -= pair.separation - 0.5;
+            this.sprite.setVelocityX(0);
+            if (pair.separation >= 0.5) this.sprite.x -= pair.separation - 0.5;
         } else if (bodyA === this.sensors.bottom) {
             this.isTouching.ground = true;
             this.didJump = false;
@@ -117,22 +119,19 @@ export default class MatterPlayer {
         const isRightKeyDown = this.rightInput.isDown();
         const isLeftKeyDown = this.leftInput.isDown();
         const isJumpKeyDown = this.jumpInput.isDown();
+        let forceToApply = {x: 0, y: 0};
 
         if (isLeftKeyDown) {
             sprite.setFlipX(true);
             // Only move left if we're grounded, or not touching a wall. The grounded check is necessary to make slopes work.
             if (!this.isTouching.left) {
-                //sprite.setVelocityX(-3);
-                    console.log(sprite.body.velocity);
-                    sprite.applyForce({x: -0.01, y: 0});
+                forceToApply.x = this.isTouching.ground ? -0.01 : -0.005;
             }
         } else if (isRightKeyDown) {
             sprite.setFlipX(false);
             // Only move left if we're grounded, or not touching a wall. The grounded check is necessary to make slopes work.
             if (!this.isTouching.right) {
-                //sprite.setVelocityX(3);
-                sprite.applyForce({x: 0.01, y: 0});
-
+                forceToApply.x = this.isTouching.ground ? 0.01 : 0.005
             }
         }
 
@@ -142,10 +141,12 @@ export default class MatterPlayer {
 
         if (this.didJump) {
             if (velocity.x >= 2) {
-                sprite.applyForce({x: -0.005, y: 0});
+            //    forceToApply.x = -0.005
+                //sprite.applyForce({x: -0.005, y: 0});
             }
             if (velocity.x <= -2) {
-                sprite.applyForce({x: 0.005, y: 0});
+            //    forceToApply.x = 0.005
+                //sprite.applyForce({x: 0.005, y: 0});
             }
         }
 
@@ -153,6 +154,13 @@ export default class MatterPlayer {
             sprite.setVelocityY(-7);
             this.didJump = true;
         }
+
+        if (this.isTouching.ground && velocity.y > 0) {
+            sprite.setVelocityY(0);
+            forceToApply.y = 0;
+        }
+
+        sprite.applyForce(forceToApply)
 
         // TODO: experiment with this.jumpInput.isDown() + this.didJump + this.jumpInput.timeOdwn so we can jump higher when holding up longer.
     }
