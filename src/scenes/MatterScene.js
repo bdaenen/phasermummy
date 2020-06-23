@@ -2,6 +2,7 @@ var player;
 var cursors;
 import MatterPlayer from "../sprites/MatterPlayer.js";
 import Slopes from 'phaser-slopes';
+import TILEMAP_FORMATS from 'phaser/src/tilemaps/Formats'
 
 /**
  * @class MatterScene
@@ -18,6 +19,12 @@ class MatterScene extends Phaser.Scene {
             key: "MatterScene",
             active: true
         });
+        this.levelCoords = {
+            x: 2,
+            y: 0
+        }
+        this.currentLevel = null;
+        this.levelObjects = [];
     }
 
     /**
@@ -35,22 +42,35 @@ class MatterScene extends Phaser.Scene {
     }
 
     async loadLevel() {
+        const { x, y } = this.levelCoords;
+        let levelData = await import(`../../assets/levels/level${x}_${y}.json`);
+        let tiledata = {format: TILEMAP_FORMATS.TILED_JSON, data: levelData.default};
+
+        this.cache.tilemap.add(`LEVEL_${x}_${y}`, tiledata);
+
         return true;
     }
 
-    /**
-     * @memberof MatterScene
-     */
-    async create() {
-        //this.matter.world.setBounds(0, 0, 720, 400);
+    initLevel() {
+        const {x, y} = this.levelCoords;
 
-        await this.loadLevel()
-        this.matter.world.setGravity(0, 0.8);
-        const map = this.make.tilemap({key: 'map'});
+        if (this.currentLevel) {
+            let tiles = this.currentLevel.getTilesWithin(0, 0, this.currentLevel.width, this.currentLevel.height, {isColliding: true}, 'Walls');
+            tiles.forEach((tile) => {
+                tile.physics.matterBody.destroy()
+            });
+            this.levelObjects.forEach((body) => {
+                body.destroy()
+            })
+            this.currentLevel.destroy()
+        }
+        const map = this.make.tilemap({key: `LEVEL_${x}_${y}`});
+        this.currentLevel = map;
         const tileset = map.addTilesetImage('ForgottenDungeonRecolor');
-        map.createDynamicLayer('Background', tileset, 0, 0);
+        const bgLayer = map.createDynamicLayer('Background', tileset, 0, 0);
         const wallsLayer = map.createDynamicLayer('Walls', tileset, 0, 0);
 
+        bgLayer.setDepth(9);
         wallsLayer.setDepth(10);
 
         // Set colliding tiles before converting the layer to Matter bodies
@@ -68,8 +88,8 @@ class MatterScene extends Phaser.Scene {
             const {x, y, width, height} = box;
 
             // Tiled origin for coordinate system is (0, 1), but we want (0.5, 0.5)
-            this.matter.add
-                .image(x-width/2, y-height/2, "block")
+            this.levelObjects.push(this.matter.add
+                .image(x - width / 2, y - height / 2, "block")
                 .setBody({
                     shape: "rectangle",
                     density: 1,
@@ -78,7 +98,21 @@ class MatterScene extends Phaser.Scene {
                 })
                 .setFixedRotation()
                 .setStatic(true)
+                .setDepth(11)
+            )
         });
+        this.player && this.player.sprite.setDepth(900)
+    }
+
+    /**
+     * @memberof MatterScene
+     */
+    async create() {
+        //this.matter.world.setBounds(0, 0, 720, 400);
+
+        await this.loadLevel();
+        this.matter.world.setGravity(0, 0.8);
+        this.initLevel();
 
         player = new MatterPlayer(this, 260, 180);
         this.player = player;
@@ -91,15 +125,38 @@ class MatterScene extends Phaser.Scene {
 
         cursors = this.input.keyboard.createCursorKeys();
 
+        this.player.sprite.setDepth(900);
+
         this.matter.world.on('collisionstart', (event, bodyA, bodyB) => {
-            console.log(this.matter.world);
-            if (Object.values(this.matter.world.walls).indexOf(bodyA) >= 0) {
-                // TODO: load next level depending on if we hit top/right/bottom/left
+            let walls = Object.entries(this.matter.world.walls);
+
+            let wall = walls.find(([key, value])=> {
+                return value === bodyA || value === bodyB
+            });
+
+            if (!wall) return;
+
+            switch (wall[0]) {
+                case 'top':
+                    break;
+                case 'bottom':
+                    break;
+                case 'left':
+                    this.levelCoords.x--;
+                    this.loadLevel().then(() => {
+                        this.initLevel();
+                        this.player.sprite.x = this.currentLevel.widthInPixels - this.player.sprite.width/2;
+                    });
+                    break;
+                case 'right':
+                    this.levelCoords.x++;
+                    this.loadLevel().then(() => {
+                        this.initLevel();
+                        this.player.sprite.x = this.player.sprite.width/2;
+                    });
+                    break;
             }
-            if (Object.values(this.matter.world.walls).indexOf(bodyB) >= 0) {
-                // TODO: load next level depending on if we hit top/right/bottom/left
-            }
-        })
+        });
     }
 
     onPlayerCollide({gameObjectB}) {
