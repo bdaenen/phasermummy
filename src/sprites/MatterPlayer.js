@@ -8,6 +8,7 @@ export default class MatterPlayer {
         // TODO: grace period for allowing jumps
         this.sinceGroundTouching = 0;
         this.didJump = false;
+        this.speed = 2.25;
 
         const { Body, Bodies } = Phaser.Physics.Matter.Matter;
         const { width, height } = this.sprite;
@@ -20,10 +21,10 @@ export default class MatterPlayer {
             bottom: Bodies.rectangle(width/2, height, 8, 2, {
                 isSensor: true,
             }),
-            left: Bodies.rectangle(width/4, height/2, 4, height * 0.5, {
+            left: Bodies.rectangle(width/4, height/2, 5, height * 0.5, {
                 isSensor: true,
             }),
-            right: Bodies.rectangle(width/4*3, height/2, 4, height * 0.5, {
+            right: Bodies.rectangle(width/4*3, height/2, 5, height * 0.5, {
                 isSensor: true,
             }),
         };
@@ -35,7 +36,7 @@ export default class MatterPlayer {
                 this.sensors.left,
                 this.sensors.right,
             ],
-            frictionStatic: 1,
+            frictionStatic: 0.02,
             frictionAir: 0.03,
             friction: 0.2,
         });
@@ -125,33 +126,25 @@ export default class MatterPlayer {
             sprite.setFlipX(true);
             // Only move left if we're grounded, or not touching a wall. The grounded check is necessary to make slopes work.
             if (!this.isTouching.left) {
-                forceToApply.x = this.isTouching.ground ? -0.01 : -0.005;
+                sprite.setVelocityX(-this.speed);
+            }
+            else {
+                sprite.setVelocityX(0)
             }
         } else if (isRightKeyDown) {
             sprite.setFlipX(false);
             // Only move left if we're grounded, or not touching a wall. The grounded check is necessary to make slopes work.
             if (!this.isTouching.right) {
-                forceToApply.x = this.isTouching.ground ? 0.01 : 0.005
+                sprite.setVelocityX(this.speed)
+            }
+            else {
+                sprite.setVelocityX(0)
             }
         }
 
-        // TODO: check if thiis is still needed. Might interfere with strongly pushing the player back.
-        if (velocity.x > 2) sprite.setVelocityX(2);
-        else if (velocity.x < -2) sprite.setVelocityX(-2);
-
-        if (this.didJump) {
-            if (velocity.x >= 2) {
-            //    forceToApply.x = -0.005
-                //sprite.applyForce({x: -0.005, y: 0});
-            }
-            if (velocity.x <= -2) {
-            //    forceToApply.x = 0.005
-                //sprite.applyForce({x: 0.005, y: 0});
-            }
-        }
 
         if (isJumpKeyDown && this.isTouching.ground) {
-            sprite.setVelocityY(-7);
+            sprite.setVelocityY(-8);
             this.didJump = true;
         }
 
@@ -160,7 +153,7 @@ export default class MatterPlayer {
             forceToApply.y = 0;
         }
 
-        sprite.applyForce(forceToApply)
+     //   sprite.applyForce(forceToApply)
 
         // TODO: experiment with this.jumpInput.isDown() + this.didJump + this.jumpInput.timeOdwn so we can jump higher when holding up longer.
     }

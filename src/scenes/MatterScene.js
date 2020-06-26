@@ -34,7 +34,7 @@ class MatterScene extends Phaser.Scene {
         this.load.image("block", "assets/images/base/wall.png");
         this.load.image("igor", "assets/images/igor.png");
         this.load.tilemapTiledJSON({key: "map", url: "assets/levels/level2_0.json"});
-        this.load.scenePlugin('Slopes', Slopes);
+       // this.load.scenePlugin('Slopes', Slopes);
         this.load.image(
             "ForgottenDungeonRecolor",
             "assets/gamedevmarket/5e2cbce57025549152274cf3a95ee676/ForgottenDungeonTILESET-recolor.png"
