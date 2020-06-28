@@ -1,14 +1,14 @@
-import Link from '../abilities/Link';
+import Link from "../abilities/Link";
 export default class Igor extends Phaser.GameObjects.Sprite {
     static preload(preloader) {
-        preloader.image('igor', 'assets/images/igor.png')
+        preloader.image("igor", "assets/images/igor.png");
     }
     constructor(config) {
-        super(config.scene, config.x, config.y, 'igor');
+        super(config.scene, config.x, config.y, "igor");
         config.scene.physics.world.enable(this);
         config.scene.add.existing(this);
         this.setDataEnabled();
-        this.setData('abilities', {});
+        this.setData("abilities", {});
         this.acceleration = 2000;
         this.body.maxVelocity.x = 120;
         this.body.maxVelocity.y = 400;
@@ -19,31 +19,94 @@ export default class Igor extends Phaser.GameObjects.Sprite {
         this.wasHurt = -1;
         this.flashToggle = false;
         this.enteringPipe = false;
-        this.anims.play('stand');
+        this.anims.play("stand");
         this.alive = true;
-        this.type = 'igor';
+        this.type = "igor";
         this.jumpTimer = 0;
+        this.jumpCooldown = 100;
         this.jumping = false;
         this.fireCoolDown = 0;
+        this.touching = { left: false, right: false };
         this.standingOnLinkedTile = false;
-        console.log(this.body);
 
-        this.on('animationcomplete', () => {
-            if (this.anims.currentAnim.key === 'grow' || this.anims.currentAnim.key === 's(hrink') {
-                this.scene.physics.world.resume();
-            }
-        }, this);
+        this.sensors = [
+            this.createSensor({ x: -4, y: 0 }),
+            this.createSensor({ x: 8, y: 0 })
+        ];
+
+        this.on(
+            "animationcomplete",
+            () => {
+                if (
+                    this.anims.currentAnim.key === "grow" ||
+                    this.anims.currentAnim.key === "s(hrink"
+                ) {
+                    this.scene.physics.world.resume();
+                }
+            },
+            this
+        );
+
+        this.scene.events.on("preupdate", this.preupdate, this);
+        this.scene.events.on("update", this.update, this);
     }
-    
-    onCollide = (tile) => {
-        if (tile.isAffectedBy(Link.key) && tile.sprite.y > this.y) {
-            this.body.setGravityY(10000);
+
+    preupdate() {
+        if (this.scene.currentLevel) {
+            this.touching.left = this.scene.physics.overlap(this.sensors[0], this.scene.currentLevel.spriteMap, undefined, (a, b) => {
+                let tile = b.data && b.data.get('tile');
+                return tile && tile.collides
+            });
+            this.touching.right = this.scene.physics.overlap(this.sensors[1], this.scene.currentLevel.spriteMap, undefined, (a, b) => {
+                let tile = b.data && b.data.get('tile');
+                return tile && tile.collides
+            });
         }
     }
 
-    update(keys, delta) {
-        let abilities = this.getData('abilities');
-        Object.keys(this.getData('abilities')).forEach(function(abilityKey) {
+    createSensor(offset) {
+        let sensor = this.scene.physics.add.image();
+        sensor.body.setSize(4, 10);
+        sensor.setDebugBodyColor(0x0055ff);
+        sensor.body.setOffset(
+            offset.x + this.width / 2,
+            offset.y + this.height / 2
+        );
+        sensor.body.setAllowGravity(false);
+        sensor.setPosition(this.x, this.y);
+
+        return sensor;
+    }
+
+    onCollide = tile => {
+        if (tile.isAffectedBy(Link.key) && tile.sprite.y > this.y) {
+            this.body.setGravityY(10000);
+        }
+    };
+
+    onSensorCollide = (sensor, sprite) => {
+        let tile = sprite.data && sprite.getData("tile");
+
+        if (!tile) {
+            return;
+        }
+
+        if (tile.collides) {
+            // Left
+            if (sensor === this.sensors[0]) {
+                this.touching.left = true;
+            }
+
+            // Right
+            if (sensor === this.sensors[1]) {
+                this.touching.right = true;
+            }
+        }
+    };
+
+    update(time, delta) {
+        let abilities = this.getData("abilities");
+        Object.keys(this.getData("abilities")).forEach(function(abilityKey) {
             abilities[abilityKey].update(delta);
         }, this);
 
@@ -60,7 +123,7 @@ export default class Igor extends Phaser.GameObjects.Sprite {
         //     this.scene.physics.world.collide(this, this.scene.groundLayer);
         // }
 
-/*         if (this.wasHurt > 0) {
+        /*         if (this.wasHurt > 0) {
             this.wasHurt -= delta;
             this.flashToggle = !this.flashToggle;
             this.alpha = this.flashToggle ? 0.2 : 1;
@@ -68,14 +131,6 @@ export default class Igor extends Phaser.GameObjects.Sprite {
                 this.alpha = 1;
             }
         } */
-
-        let input = {
-            left: keys.left.isDown,
-            right: keys.right.isDown,
-            down: keys.down.isDown,
-            jump: keys.jump.isDown
-        };
-
         // this.angle++
         //  console.log(this.body.velocity.y);
         if (this.body.velocity.y > 0) {
@@ -84,60 +139,70 @@ export default class Igor extends Phaser.GameObjects.Sprite {
 
         this.jumpTimer -= delta;
 
-        if (input.left) {
-            if (this.body.velocity.y === 0) {
-                this.run(-this.acceleration);
-            } else {
-                this.run(-this.acceleration / 3);
-            }
-            this.flipX = true;
-        } else if (input.right) {
-            if (this.body.velocity.y === 0) {
-                this.run(this.acceleration);
-            } else {
-                this.run(this.acceleration / 3);
-            }
-            this.flipX = false;
-        } else if (this.body.blocked.down) {
-            console.log('blocked down');
-            if (Math.abs(this.body.velocity.x) < 10) {
-                this.body.setVelocityX(0);
+        if (this.isControllable) {
+            debugger;
+            let input = {
+                left: this.controls.left.isDown(),
+                right: this.controls.right.isDown(),
+                up: this.controls.up.isDown(),
+                down: this.controls.down.isDown(),
+                jump: this.controls.jump.isDown()
+            };
+
+            if (input.left && !this.touching.left) {
+                if (this.body.velocity.y === 0) {
+                    this.run(-this.acceleration);
+                } else {
+                    this.run(-this.acceleration / 3);
+                }
+                this.flipX = true;
+            } else if (input.right && !this.touching.right) {
+                if (this.body.velocity.y === 0) {
+                    this.run(this.acceleration);
+                } else {
+                    this.run(this.acceleration / 3);
+                }
+                this.flipX = false;
+            } else if (this.body.blocked.down) {
+                console.log("blocked down");
+                if (Math.abs(this.body.velocity.x) < 10) {
+                    this.body.setVelocityX(0);
+                    this.run(0);
+                } else {
+                    this.run(
+                        ((this.body.velocity.x > 0 ? -1 : 1) *
+                            this.acceleration) /
+                            2
+                    );
+                }
+            } else if (!this.body.blocked.down) {
                 this.run(0);
-            } else {
-                this.run(((this.body.velocity.x > 0) ? -1 : 1) * this.acceleration / 2);
             }
-        } else if (!this.body.blocked.down) {
-            this.run(0);
-        }
 
-        if (input.jump && (!this.jumping || this.jumpTimer > 0)) {
-            this.jump();
-        } else if (!input.jump) {
-            this.jumpTimer = -1; // Don't resume jump if button is released, prevents mini double-jumps
-            if (this.body.blocked.down) {
-                this.jumping = false;
+
+            if (input.jump && (!this.jumping && this.jumpTimer < 0)) {
+                this.jump();
+            } else if (!input.jump) {
+                this.jumpTimer = -1; // Don't resume jump if button is released, prevents mini double-jumps
+                if (this.body.blocked.down) {
+                    this.jumping = false;
+                }
             }
         }
 
-        let anim = null;
-        if (this.body.velocity.y !== 0) {
-            anim = 'jump';
-        } else if (this.body.velocity.x !== 0) {
-            anim = 'run';
-        } else {
-            anim = 'stand';
-        }
-
-        /* anim += this.animSuffix;
-        if (this.anims.currentAnim.key !== anim && !this.scene.physics.world.isPaused) {
-            this.anims.play(anim);
-        } */
-
-        this.physicsCheck = true;
 
         if (this.body.velocity.y === 0 && this.jumping) {
             this.jumping = false;
+            this.jumpTimer = this.jumpCooldown;
         }
+
+        if (this.touching.left || this.touching.right) {
+            this.body.setVelocityX(0)
+        }
+
+        this.sensors.forEach(sensor => {
+            sensor.setPosition(this.x, this.y);
+        });
     }
 
     run(vel) {
@@ -152,13 +217,11 @@ export default class Igor extends Phaser.GameObjects.Sprite {
             this.body.setGravityY(0);
             //this.scene.sound.playAudioSprite('sfx', 'smb_jump-small');
         }
-        
+
         if (this.body.velocity.y === 0) {
             this.body.setVelocityY(-555);
         }
-        if (!this.jumping) {
-            this.jumpTimer = 600;
-        }
+
         this.jumping = true;
     }
 
@@ -167,9 +230,9 @@ export default class Igor extends Phaser.GameObjects.Sprite {
             return;
         }
         if (this.wasHurt < 1) {
-            if (this.animSuffix !== '') {
+            if (this.animSuffix !== "") {
                 this.resize(false);
-                this.scene.sound.playAudioSprite('sfx', 'smb_pipe');
+                this.scene.sound.playAudioSprite("sfx", "smb_pipe");
 
                 this.wasHurt = 2000;
             } else {
@@ -180,19 +243,19 @@ export default class Igor extends Phaser.GameObjects.Sprite {
 
     die() {
         this.scene.music.pause();
-        this.play('death');
-        this.scene.sound.playAudioSprite('sfx', 'smb_mariodie');
+        this.play("death");
+        this.scene.sound.playAudioSprite("sfx", "smb_mariodie");
         this.body.setAcceleration(0);
         this.body.setVelocity(0, -300);
         this.alive = false;
     }
 
     destroy() {
-        let abilities = this.getData('abilities');
+        let abilities = this.getData("abilities");
         Object.keys(abilities).forEach(function(key) {
             abilities[key].destroy();
         });
-        this.setData('abilities', null);
+        this.setData("abilities", null);
         super.destroy();
     }
 }
