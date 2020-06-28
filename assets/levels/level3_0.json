@@ -1,4 +1,12 @@
 { "compressionlevel":-1,
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"json",
+         "target":"level3_0.json"
+        }
+    },
  "height":36,
  "infinite":false,
  "layers":[
@@ -66,6 +74,42 @@
                  "width":16,
                  "x":1008,
                  "y":512
+                }, 
+                {
+                 "gid":114,
+                 "height":20,
+                 "id":4,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"key",
+                         "type":"string",
+                         "value":"push"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":20,
+                 "x":112,
+                 "y":512
+                }, 
+                {
+                 "gid":113,
+                 "height":20,
+                 "id":5,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"key",
+                         "type":"string",
+                         "value":"link"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":20,
+                 "x":144,
+                 "y":512
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -74,7 +118,7 @@
          "y":0
         }],
  "nextlayerid":4,
- "nextobjectid":4,
+ "nextobjectid":6,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.4.0",
@@ -83,7 +127,7 @@
         {
          "columns":10,
          "firstgid":1,
-         "image":"..\/..\/assets\/gamedevmarket\/5e2cbce57025549152274cf3a95ee676\/ForgottenDungeonTILESET-recolor.png",
+         "image":"..\/gamedevmarket\/5e2cbce57025549152274cf3a95ee676\/ForgottenDungeonTILESET-recolor.png",
          "imageheight":160,
          "imagewidth":160,
          "margin":0,
@@ -715,6 +759,125 @@
                         }]
                 }],
          "tilewidth":16
+        }, 
+        {
+         "columns":0,
+         "firstgid":101,
+         "grid":
+            {
+             "height":1,
+             "orientation":"orthogonal",
+             "width":1
+            },
+         "margin":0,
+         "name":"Pyramid",
+         "spacing":0,
+         "tilecount":14,
+         "tileheight":32,
+         "tiles":[
+                {
+                 "id":0,
+                 "image":"..\/images\/base\/bg.png",
+                 "imageheight":32,
+                 "imagewidth":32
+                }, 
+                {
+                 "id":1,
+                 "image":"..\/images\/base\/switch_down.png",
+                 "imageheight":20,
+                 "imagewidth":20
+                }, 
+                {
+                 "id":2,
+                 "image":"..\/images\/base\/switch.png",
+                 "imageheight":20,
+                 "imagewidth":20
+                }, 
+                {
+                 "id":3,
+                 "image":"..\/images\/base\/wall_key.png",
+                 "imageheight":20,
+                 "imagewidth":10
+                }, 
+                {
+                 "id":4,
+                 "image":"..\/images\/base\/wall_destructable.png",
+                 "imageheight":20,
+                 "imagewidth":20
+                }, 
+                {
+                 "id":5,
+                 "image":"..\/images\/base\/wall.png",
+                 "imageheight":20,
+                 "imagewidth":20,
+                 "properties":[
+                        {
+                         "name":"key",
+                         "type":"string",
+                         "value":"block"
+                        }]
+                }, 
+                {
+                 "id":6,
+                 "image":"..\/images\/base\/wall_hard.png",
+                 "imageheight":20,
+                 "imagewidth":20
+                }, 
+                {
+                 "id":7,
+                 "image":"..\/images\/base\/spike.png",
+                 "imageheight":20,
+                 "imagewidth":20
+                }, 
+                {
+                 "id":8,
+                 "image":"..\/images\/base\/portal.png",
+                 "imageheight":20,
+                 "imagewidth":20
+                }, 
+                {
+                 "id":9,
+                 "image":"..\/images\/base\/key.png",
+                 "imageheight":20,
+                 "imagewidth":10
+                }, 
+                {
+                 "id":10,
+                 "image":"..\/images\/base\/powerup_time.png",
+                 "imageheight":20,
+                 "imagewidth":20
+                }, 
+                {
+                 "id":11,
+                 "image":"..\/images\/base\/powerup_sprint.png",
+                 "imageheight":20,
+                 "imagewidth":20
+                }, 
+                {
+                 "id":12,
+                 "image":"..\/images\/base\/powerup_link.png",
+                 "imageheight":20,
+                 "imagewidth":20,
+                 "properties":[
+                        {
+                         "name":"key",
+                         "type":"string",
+                         "value":"link"
+                        }]
+                }, 
+                {
+                 "id":13,
+                 "image":"..\/images\/base\/powerup_push.png",
+                 "imageheight":20,
+                 "imagewidth":20,
+                 "properties":[
+                        {
+                         "name":"key",
+                         "type":"string",
+                         "value":"push"
+                        }]
+                }],
+         "tilewidth":32
         }],
  "tilewidth":16,
  "type":"map",

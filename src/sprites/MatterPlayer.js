@@ -80,6 +80,16 @@ export default class MatterPlayer {
         });
 
         this.scene.events.on('update', this.update, this);
+
+        this.sprite.setData('abilities', {});
+    }
+
+    get abilities() {
+        return this.sprite.getData('abilities')
+    }
+
+    set abilities(val) {
+        this.sprite.setData('abilities', val);
     }
 
     onSensorCollide({bodyA, bodyB, pair}) {
@@ -110,7 +120,7 @@ export default class MatterPlayer {
         this.sprite.setStatic(true);
     }
 
-    update() {
+    update(delta) {
         if (this.destroyed) {
             return;
         }
@@ -152,6 +162,11 @@ export default class MatterPlayer {
             sprite.setVelocityY(0);
             forceToApply.y = 0;
         }
+
+        let abilities = this.abilities;
+        Object.keys(abilities).forEach(function (abilityKey) {
+            abilities[abilityKey].update(delta);
+        }, this);
 
      //   sprite.applyForce(forceToApply)
 

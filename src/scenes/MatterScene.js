@@ -1,3 +1,5 @@
+import {PowerupLink, PowerupPush} from "../sprites/tiles";
+
 var player;
 var cursors;
 import MatterPlayer from "../sprites/MatterPlayer.js";
@@ -20,7 +22,7 @@ class MatterScene extends Phaser.Scene {
             active: true
         });
         this.levelCoords = {
-            x: 2,
+            x: 3,
             y: 0
         }
         this.currentLevel = null;
@@ -33,6 +35,12 @@ class MatterScene extends Phaser.Scene {
     preload() {
         this.load.image("block", "assets/images/base/wall.png");
         this.load.image("igor", "assets/images/igor.png");
+        this.load.image("base_powerup_link", "assets/images/abilities/link.png");
+        this.load.image("powerup_link", "assets/images/abilities/link.png");
+        this.load.image("link", "assets/images/abilities/link.png");
+        this.load.image("base_powerup_push", "assets/images/abilities/push.png");
+        this.load.image("powerup_push", "assets/images/abilities/push.png");
+        this.load.image("push", "assets/images/abilities/push.png");
         this.load.tilemapTiledJSON({key: "map", url: "assets/levels/level2_0.json"});
        // this.load.scenePlugin('Slopes', Slopes);
         this.load.image(
@@ -85,22 +93,35 @@ class MatterScene extends Phaser.Scene {
         this.matter.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
         map.getObjectLayer("Boxes").objects.forEach(box => {
-            const {x, y, width, height} = box;
-
+            const {x, y, width, height, properties} = box;
+            const key = properties ? properties.find(prop => prop.name === 'key').value : 'block';
             // Tiled origin for coordinate system is (0, 1), but we want (0.5, 0.5)
-            this.levelObjects.push(this.matter.add
-                .image(x - width / 2, y - height / 2, "block")
-                .setBody({
-                    shape: "rectangle",
-                    density: 1,
-                    width: 16,
-                    height: 16
-                })
-                .setFixedRotation()
-                .setStatic(true)
-                .setDepth(11)
-            )
+            if (key === 'push') {
+                this.levelObjects.push(new PowerupPush({
+                    x: x - width/2,
+                    y: y - height/2,
+                    width,
+                    height,
+                    scene: this,
+                    tileset: 'base'
+                }))
+            }
+            else {
+                this.levelObjects.push(this.matter.add
+                    .image(x - width / 2, y - height / 2, key)
+                    .setBody({
+                        shape: "rectangle",
+                        density: 1,
+                        width: 16,
+                        height: 16
+                    })
+                    .setFixedRotation()
+                    .setStatic(true)
+                    .setDepth(11)
+                )
+            }
         });
+
         this.player && this.player.sprite.setDepth(900)
     }
 
@@ -156,6 +177,17 @@ class MatterScene extends Phaser.Scene {
                     });
                     break;
             }
+        });
+
+        this.matterCollision.addOnCollideStart({
+            objectA: [player.sprite],
+            callback: ({gameObjectA, gameObjectB}) => {
+                if (gameObjectB && gameObjectB.data) {
+                    let tile = gameObjectB.getData('tile');
+                    if (tile && tile.onOverlap && tile.onOverlap(gameObjectA));
+                }
+            },
+            context: this
         });
     }
 

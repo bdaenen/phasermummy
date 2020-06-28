@@ -29,12 +29,12 @@ export default class Igor extends Phaser.GameObjects.Sprite {
         console.log(this.body);
 
         this.on('animationcomplete', () => {
-            if (this.anims.currentAnim.key === 'grow' || this.anims.currentAnim.key === 's(hrink') {
+            if (this.anims.currentAnim.key === 'grow' || this.anims.currentAnim.key === 'shrink') {
                 this.scene.physics.world.resume();
             }
         }, this);
     }
-    
+
     onCollide = (tile) => {
         if (tile.isAffectedBy(Link.key) && tile.sprite.y > this.y) {
             this.body.setGravityY(10000);
@@ -152,7 +152,7 @@ export default class Igor extends Phaser.GameObjects.Sprite {
             this.body.setGravityY(0);
             //this.scene.sound.playAudioSprite('sfx', 'smb_jump-small');
         }
-        
+
         if (this.body.velocity.y === 0) {
             this.body.setVelocityY(-555);
         }

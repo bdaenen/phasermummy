@@ -3,7 +3,7 @@ import Link from './Link';
 
 export default class Push extends Ability {
     static key = 'push';
-    speed = 400;
+    speed = 1;
     pushDistance = 2;
     maxDistanceToLive = 1000;
     distanceToLive = 1000;
@@ -13,15 +13,15 @@ export default class Push extends Ability {
     constructor(scene) {
         super(scene);
         this.bulletSprite = this.createBullet();
-        this.scene.foregroundGroup.add(this.bulletSprite);
+        this.scene.matter.add.sprite(this.bulletSprite);
     }
 
     createBullet() {
-        let bullet = this.scene.physics.add.sprite(-100, -100, 'base_powerup_push');
+        let bullet = this.scene.matter.add.sprite(-100, -100, 'base_powerup_push');
         bullet.body.allowGravity = false;
-        bullet.body.setSize(10, 10, true);
-        bullet.body.setImmovable();
-        bullet.disableBody(true, true);
+        //bullet.body.setSize(10, 10, true);
+        //bullet.body.setImmovable();
+        //bullet.disableBody(true, true);
 
         return bullet;
     }
@@ -33,9 +33,10 @@ export default class Push extends Ability {
         let player = this.sprite;
         let angle = Math.atan2(pointer.y - player.y, pointer.x - player.x);
 
-        this.bulletSprite.enableBody(true, player.x, player.y, true, true);
-        this.bulletSprite.body.setVelocityX(Math.cos(angle)*this.speed);
-        this.bulletSprite.body.setVelocityY(Math.sin(angle)*this.speed);
+        this.bulletSprite.setPosition(player.x, player.y);
+
+        this.bulletSprite.setVelocityX(Math.cos(angle)*this.speed);
+        this.bulletSprite.setVelocityY(Math.sin(angle)*this.speed);
 
         return true;
     }
@@ -57,16 +58,21 @@ export default class Push extends Ability {
         super.update(delta);
 
         if (this.active) {
-            this.scene.physics.world.collide(this.bulletSprite, this.scene.currentLevel.spriteMap, this.handleBulletCollide);
+            //this.scene.matter.world.collide(this.bulletSprite, this.scene.currentLevel.spriteMap, this.handleBulletCollide);
+            this.scene.matterCollision.addOnCollideStart({
+                objectA: [this.bulletSprite],
+                callback: this.handleBulletCollide,
+                context: this
+            });
 
-            this.distanceToLive -= this.bulletSprite.body.deltaAbsX() + this.bulletSprite.body.deltaAbsY();
-            if (this.distanceToLive <= 0) {
+            //this.distanceToLive -= this.bulletSprite.body.deltaAbsX() + this.bulletSprite.body.deltaAbsY();
+            /*if (this.distanceToLive <= 0) {
                 this.disable();
-            }
+            }*/
         }
     }
 
-    handleBulletCollide = (bulletSprite, levelSprite) => {
+    handleBulletCollide = ({gameObjectA: bulletSprite, gameObjectB: levelSprite}) => {
         let tile = levelSprite.getData('tile');
         if (tile.pushable) {
             let targets;

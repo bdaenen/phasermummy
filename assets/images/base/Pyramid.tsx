@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.2" tiledversion="1.3.5" name="Pyramid" tilewidth="32" tileheight="32" tilecount="14" columns="0">
+<tileset version="1.4" tiledversion="1.4.0" name="Pyramid" tilewidth="32" tileheight="32" tilecount="14" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="0">
   <image width="32" height="32" source="bg.png"/>
@@ -17,6 +17,9 @@
   <image width="20" height="20" source="wall_destructable.png"/>
  </tile>
  <tile id="5">
+  <properties>
+   <property name="key" value="block"/>
+  </properties>
   <image width="20" height="20" source="wall.png"/>
  </tile>
  <tile id="6">
@@ -38,9 +41,15 @@
   <image width="20" height="20" source="powerup_sprint.png"/>
  </tile>
  <tile id="12">
+  <properties>
+   <property name="key" value="link"/>
+  </properties>
   <image width="20" height="20" source="powerup_link.png"/>
  </tile>
  <tile id="13">
+  <properties>
+   <property name="key" value="push"/>
+  </properties>
   <image width="20" height="20" source="powerup_push.png"/>
  </tile>
 </tileset>
