@@ -1,6 +1,8 @@
 import Igor from "../sprites/Igor";
 import levelLoader from "../levels/LevelLoader";
 import controllable from "../decorators/controllable";
+import TILEMAP_FORMATS from 'phaser/src/tilemaps/Formats'
+
 
 /**
  * @class GameScene
@@ -11,6 +13,10 @@ class GameScene extends Phaser.Scene {
     backgroundGroup = null;
     middleGroup = null;
     foregroundGroup = null;
+    levelCoords = {x: 2, y: 0};
+    levelObjects = [];
+    levelCollider = null;
+    created = false;
 
     /**
      * Creates an instance of GameScene.
@@ -51,16 +57,87 @@ class GameScene extends Phaser.Scene {
         });
 
         Igor.preload(this.load);
+        //this.load.image("block", "assets/images/base/wall.png");
+        //this.load.image("igor", "assets/images/igor.png");
+        //this.load.image("base_powerup_link", "assets/images/abilities/link.png");
+        //this.load.image("powerup_link", "assets/images/abilities/link.png");
+        //this.load.image("link", "assets/images/abilities/link.png");
+        //this.load.image("base_powerup_push", "assets/images/abilities/push.png");
+        //this.load.image("powerup_push", "assets/images/abilities/push.png");
+        //this.load.image("push", "assets/images/abilities/push.png");
+        //this.load.tilemapTiledJSON({key: "map", url: "assets/levels/level2_0.json"});
+        // this.load.scenePlugin('Slopes', Slopes);
+        this.load.image(
+            "ForgottenDungeonRecolor",
+            "assets/gamedevmarket/5e2cbce57025549152274cf3a95ee676/ForgottenDungeonTILESET-recolor.png"
+        );
     }
+
+    async loadLevel(x, y) {
+        console.log('importing ' + x + ', ' + y);
+        let levelData = await import(`../../assets/levels/level${x}_${y}.json`);
+        let tiledata = {format: TILEMAP_FORMATS.TILED_JSON, data: levelData.default};
+
+        this.cache.tilemap.add(`LEVEL_${x}_${y}`, tiledata);
+console.log('added to cache');
+        return true;
+    }
+
+    initLevel = () => {
+        const {x, y} = this.levelCoords;
+        this.physics.world.pause();
+
+        if (this.currentLevel) {
+            this.levelObjects.forEach((body) => {
+                body.destroy()
+            });
+            this.levelCollider.destroy();
+            this.levelCollider = null;
+            this.currentLevel.destroy();
+        }
+        const map = this.make.tilemap({key: `LEVEL_${x}_${y}`});
+        this.currentLevel = map;
+        const tileset = map.addTilesetImage('ForgottenDungeonRecolor');
+        const bgLayer = map.createDynamicLayer('Background', tileset, 0, 0);
+        const wallsLayer = map.createDynamicLayer('Walls', tileset, 0, 0);
+        this.backgroundGroup.add(bgLayer);
+        this.foregroundGroup.add(wallsLayer);
+
+        // Set colliding tiles before converting the layer to Matter bodies
+        wallsLayer.setCollisionByProperty({collides: true});
+
+        this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+        map.getObjectLayer("Boxes").objects.forEach(box => {
+            const {x, y, width, height, properties} = box;
+            const key = properties ? properties.find(prop => prop.name === 'key').value : 'block';
+            // Tiled origin for coordinate system is (0, 1), but we want (0.5, 0.5)
+            this.levelObjects.push(this.physics.add
+                .image(x - width / 2, y - height / 2, key)
+                .setDepth(11)
+            )
+        });
+
+        if (this.igor) {
+            this.levelCollider = this.physics.add.collider(this.igor, wallsLayer);
+        }
+
+        this.physics.world.resume();
+    }
+
 
     /**
      * @memberof GameScene
      */
-    create() {
+    async create() {
         this.backgroundGroup = this.add.group();
         this.middleGroup = this.add.group();
         this.foregroundGroup = this.add.group();
-        levelLoader(this, 5, 0).then(this.initLevel);
+        await this.loadLevel(this.levelCoords.x, this.levelCoords.y);
+
+        this.initLevel();
+
 
         // A group powerUps to update
         this.powerUps = this.add.group();
@@ -90,55 +167,13 @@ class GameScene extends Phaser.Scene {
         //     maxSize: 10,
         //     runChildUpdate: false // Due to https://github.com/photonstorm/phaser/issues/3724
         // });
+
+        if (!this.levelCollider) {
+            debugger;
+            this.levelCollider = this.physics.add.collider(this.igor, this.currentLevel.getLayer('Walls').tilemapLayer);
+        }
+        this.created = true;
     }
-
-    /**
-     * Initialize after loading a new level
-     * @memberof GameScene
-     */
-    initLevel = lvl => {
-        this.currentLevel = lvl;
-
-        // Depth sorting
-        this.backgroundGroup.setDepth(0);
-        this.middleGroup.setDepth(500);
-        this.foregroundGroup.setDepth(1000);
-
-        this.physics.add.collider(
-            this.currentLevel.spriteMap,
-            this.igor,
-            (sprite, igor) => {
-                let tile = sprite.getData("tile");
-                if (tile.onCollide) {
-                    tile.onCollide(igor);
-                }
-                if (igor.onCollide) {
-                    igor.onCollide(tile);
-                }
-            },
-            (sprite, igor) => {
-                return sprite.getData("tile").collides;
-            }
-        );
-
-        this.physics.add.overlap(
-            this.currentLevel.spriteMap,
-            this.igor,
-            (sprite, igor) => {
-                let tile = sprite.getData("tile");
-                if (tile.onOverlap) {
-                    tile.onOverlap(igor);
-                }
-
-                if (igor.onOverlap) {
-                    igor.onOverlap(tile);
-                }
-            }
-        );
-
-        // Resume physics and update loop
-        this.physics.world.resume();
-    };
 
     /**
      * @param {*} time
@@ -151,7 +186,7 @@ class GameScene extends Phaser.Scene {
         //    fire.update(time, delta);
         // })
 
-        if (this.physics.world.isPaused) {
+        if (!this.created || this.physics.world.isPaused) {
             return;
         }
 
@@ -177,7 +212,7 @@ class GameScene extends Phaser.Scene {
      * @memberof GameScene
      */
     updateCollisions() {
-        if (this.currentLevel) {
+        if (this.currentLevel && !this.physics.world.isPaused) {
         }
     }
 
@@ -188,33 +223,25 @@ class GameScene extends Phaser.Scene {
      */
     checkLevelTransition() {
         if (this.igor.y < this.igor.height / 2) {
-            this.physics.world.pause();
-            levelLoader(
-                this,
-                this.currentLevel.x,
-                this.currentLevel.y + 1
-            ).then(this.initLevel);
+            this.loadLevel(this.levelCoords.x, ++this.levelCoords.y).then(() => {
+                this.initLevel();
+                this.igor.y = this.currentLevel.heightInPixels - this.igor.height;
+            })
         } else if (this.igor.x < this.igor.width / 2) {
-            this.physics.world.pause();
-            levelLoader(
-                this,
-                this.currentLevel.x - 1,
-                this.currentLevel.y
-            ).then(this.initLevel);
-        } else if (this.igor.x > this.sys.game.config.width) {
-            this.physics.world.pause();
-            levelLoader(
-                this,
-                this.currentLevel.x + 1,
-                this.currentLevel.y
-            ).then(this.initLevel);
-        } else if (this.igor.y > this.sys.game.config.height) {
-            this.physics.world.pause();
-            levelLoader(
-                this,
-                this.currentLevel.x,
-                this.currentLevel.y - 1
-            ).then(this.initLevel);
+            this.loadLevel(--this.levelCoords.x, this.levelCoords.y).then(() => {
+                this.initLevel();
+                this.igor.x = this.currentLevel.widthInPixels - this.igor.width;
+            })
+        } else if (this.igor.x > this.currentLevel.widthInPixels) {
+            this.loadLevel(++this.levelCoords.x, this.levelCoords.y).then(() => {
+                this.initLevel();
+                this.igor.x = this.igor.width;
+            })
+        } else if (this.igor.y > this.currentLevel.heightInPixels) {
+            this.loadLevel(this.levelCoords.x, --this.levelCoords.y ).then(() => {
+                this.initLevel();
+                this.igor.y = this.igor.height;
+            })
         }
     }
 }

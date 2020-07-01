@@ -1,0 +1,73 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "/Users/bennod/Projects/personal/phasermummy/assets/gamedevmarket/5e2cbce57025549152274cf3a95ee676/ForgottenDungeon.tsx": {
+            "scaleInDock": 1
+        },
+        "/Users/bennod/Projects/personal/phasermummy/assets/gamedevmarket/5e2cbce57025549152274cf3a95ee676/ForgottenDungeonRecolor.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "/Users/bennod/Projects/personal/phasermummy/assets/images/base/Pyramid.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "level2_0.tmx": {
+            "scale": 0.75,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 920.6666666666666,
+                "y": 356.66666666666663
+            }
+        },
+        "level3_0.tmx": {
+            "scale": 0.75,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": -103.33333333333337,
+                "y": 356.66666666666663
+            }
+        }
+    },
+    "loadedWorlds": [
+        "/Users/bennod/Projects/personal/phasermummy/assets/levels/world.world"
+    ],
+    "map.fixedSize": true,
+    "map.height": 36,
+    "map.lastUsedExportFilter": "JSON map files (*.json)",
+    "map.lastUsedFormat": "tmx",
+    "map.layerDataFormat": null,
+    "map.orientation": 1,
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "map.width": 64,
+    "openFiles": [
+    ],
+    "project": "phasermummy.tiled-project",
+    "property.type": "string",
+    "recentFiles": [
+        "level3_0.tmx",
+        "level2_0.tmx",
+        "/Users/bennod/Projects/personal/phasermummy/assets/images/base/Pyramid.tsx",
+        "/Users/bennod/Projects/personal/phasermummy/assets/gamedevmarket/5e2cbce57025549152274cf3a95ee676/ForgottenDungeonRecolor.tsx"
+    ],
+    "resizeMap.removeObjects": true,
+    "tileset.embedInMap": false,
+    "tileset.margin": 0,
+    "tileset.spacing": 0,
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    },
+    "tileset.transparentColor": "#740900",
+    "tileset.type": 0,
+    "tileset.useTransparentColor": true
+}
